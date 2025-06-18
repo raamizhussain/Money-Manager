@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Manager Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-content">
+        <h1><i class="fas fa-wallet"></i> Money Manager</h1>
+        <div class="header-controls">
+          <select id="currency-selector">
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="JPY">JPY (¥)</option>
+            <option value="INR">INR (₹)</option>
+          </select>
+          <button id="theme-toggle" title="Toggle Dark Mode">
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </div>
+      <nav>
+        <button id="nav-dashboard" class="nav-btn"><i class="fas fa-home"></i> Home</button>
+        <button id="nav-add" class="nav-btn"><i class="fas fa-plus-circle"></i> Add</button>
+        <button id="nav-reports" class="nav-btn"><i class="fas fa-chart-pie"></i> Reports</button>
+        <button id="nav-budgets" class="nav-btn"><i class="fas fa-tags"></i> Budgets</button>
+        <button id="nav-goals" class="nav-btn"><i class="fas fa-bullseye"></i> Goals</button>
+        <button id="nav-accounts" class="nav-btn"><i class="fas fa-university"></i> Accounts</button>
+        <button id="nav-settings" class="nav-btn"><i class="fas fa-cog"></i> Settings</button>
+        <button id="nav-logout" class="nav-btn" style="display:none"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </nav>
+    </header>
+    <main>
+      <section id="auth-section">
+        <div class="auth-container">
+          <h2><i class="fas fa-user-circle"></i> Welcome</h2>
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Login</button>
+            <button class="auth-tab" data-tab="register">Register</button>
+          </div>
+          <form id="login-form" class="auth-form">
+            <div class="form-group">
+              <label><i class="fas fa-envelope"></i> Email</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-lock"></i> Password</label>
+              <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn-primary">Login</button>
+          </form>
+          <form id="register-form" class="auth-form" style="display:none">
+            <div class="form-group">
+              <label><i class="fas fa-envelope"></i> Email</label>
+              <input type="email" id="reg-email" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-lock"></i> Password</label>
+              <input type="password" id="reg-password" required>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-lock"></i> Confirm Password</label>
+              <input type="password" id="reg-confirm-password" required>
+            </div>
+            <button type="submit" class="btn-primary">Register</button>
+          </form>
+          <div id="auth-message" class="message"></div>
+        </div>
+      </section>
+
+      <section id="dashboard-section" style="display:none">
+        <div class="dashboard-grid">
+          <div class="card balance-card">
+            <h3>Total Balance</h3>
+            <div id="balance-summary" class="balance-amount"></div>
+            <div class="balance-details">
+              <div class="income">
+                <i class="fas fa-arrow-up"></i>
+                <span id="total-income">$0</span>
+              </div>
+              <div class="expense">
+                <i class="fas fa-arrow-down"></i>
+                <span id="total-expense">$0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card accounts-summary">
+            <h3>Accounts</h3>
+            <div id="accounts-list" class="accounts-grid">
+              <!-- Accounts will be populated here -->
+            </div>
+            <button onclick="showAddAccountForm()" class="btn-action">
+              <i class="fas fa-plus"></i> Add Account
+            </button>
+          </div>
+
+          <div class="card quick-actions">
+            <h3>Quick Actions</h3>
+            <div class="action-buttons">
+              <button onclick="showSection(addSection)" class="btn-action">
+                <i class="fas fa-plus"></i> Add Transaction
+              </button>
+              <button onclick="showSection(reportsSection)" class="btn-action">
+                <i class="fas fa-chart-bar"></i> View Reports
+              </button>
+              <button onclick="exportTransactions()" class="btn-action">
+                <i class="fas fa-file-export"></i> Export Data
+              </button>
+            </div>
+          </div>
+
+          <div class="card recent-transactions">
+            <h3>Recent Transactions</h3>
+            <div class="transaction-filters">
+              <select id="transaction-filter">
+                <option value="all">All Transactions</option>
+                <option value="income">Income Only</option>
+                <option value="expense">Expenses Only</option>
+              </select>
+              <input type="text" id="transaction-search" placeholder="Search transactions...">
+            </div>
+            <ul id="transaction-list" class="transaction-list"></ul>
+          </div>
+
+          <div class="card budget-status">
+            <h3>Budget Status</h3>
+            <div id="budget-progress"></div>
+          </div>
+
+          <div class="card savings-goals">
+            <h3>Savings Goals</h3>
+            <div id="goals-progress"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="add-section" style="display:none">
+        <div class="card">
+          <h2><i class="fas fa-plus-circle"></i> Add Transaction</h2>
+          <form id="add-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Amount</label>
+                <input type="number" id="amount" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label>Type</label>
+                <select id="type">
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category</label>
+                <select id="category">
+                  <option value="Salary">Salary</option>
+                  <option value="Food">Food</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Bills">Bills</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Investment">Investment</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Account</label>
+                <select id="account">
+                  <!-- Accounts will be populated here -->
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="date" required>
+              </div>
+              <div class="form-group">
+                <label>Time</label>
+                <input type="time" id="time" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea id="notes" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Recurring</label>
+              <select id="recurring">
+                <option value="none">None</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Attach Receipt</label>
+              <input type="file" id="receipt" accept="image/*,.pdf">
+            </div>
+            <button type="submit" class="btn-primary">Add Transaction</button>
+          </form>
+          <div id="add-message" class="message"></div>
+        </div>
+      </section>
+
+      <section id="reports-section" style="display:none">
+        <div class="reports-grid">
+          <div class="card">
+            <h3>Category Breakdown</h3>
+            <canvas id="categoryChart"></canvas>
+          </div>
+          <div class="card">
+            <h3>Monthly Trends</h3>
+            <canvas id="monthChart"></canvas>
+          </div>
+          <div class="card">
+            <h3>Income vs Expenses</h3>
+            <canvas id="comparisonChart"></canvas>
+          </div>
+          <div class="card">
+            <h3>Category Trends</h3>
+            <canvas id="trendChart"></canvas>
+          </div>
+          <div class="card">
+            <h3>Account Balance History</h3>
+            <canvas id="accountChart"></canvas>
+          </div>
+          <div class="card">
+            <h3>Budget vs Actual</h3>
+            <canvas id="budgetChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section id="budgets-section" style="display:none">
+        <div class="card">
+          <h2>Budget Management</h2>
+          <div class="budget-controls">
+            <button onclick="showAddBudgetForm()" class="btn-primary">
+              <i class="fas fa-plus"></i> Add Budget
+            </button>
+          </div>
+          <div id="budgets-list"></div>
+        </div>
+      </section>
+
+      <section id="goals-section" style="display:none">
+        <div class="card">
+          <h2>Savings Goals</h2>
+          <div class="goals-controls">
+            <button onclick="showAddGoalForm()" class="btn-primary">
+              <i class="fas fa-plus"></i> Add Goal
+            </button>
+          </div>
+          <div id="goals-list"></div>
+        </div>
+      </section>
+
+      <section id="accounts-section" style="display:none">
+        <div class="card">
+          <h2>Account Management</h2>
+          <div class="accounts-controls">
+            <button onclick="showAddAccountForm()" class="btn-primary">
+              <i class="fas fa-plus"></i> Add Account
+            </button>
+          </div>
+          <div id="accounts-list-full"></div>
+        </div>
+      </section>
+
+      <section id="settings-section" style="display:none">
+        <div class="card">
+          <h2>Settings</h2>
+          <form id="settings-form">
+            <div class="form-group">
+              <label>Default Currency</label>
+              <select id="default-currency">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="JPY">JPY (¥)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Theme</label>
+              <select id="theme-select">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date Format</label>
+              <select id="date-format">
+                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Notifications</label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" id="notify-budget"> Budget Alerts
+                </label>
+                <label>
+                  <input type="checkbox" id="notify-goals"> Goal Updates
+                </label>
+                <label>
+                  <input type="checkbox" id="notify-recurring"> Recurring Transactions
+                </label>
+                <label>
+                  <input type="checkbox" id="notify-bills"> Bill Reminders
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Data Management</label>
+              <div class="button-group">
+                <button type="button" onclick="exportData()" class="btn-action">
+                  <i class="fas fa-file-export"></i> Export Data
+                </button>
+                <button type="button" onclick="importData()" class="btn-action">
+                  <i class="fas fa-file-import"></i> Import Data
+                </button>
+                <button type="button" onclick="backupData()" class="btn-action">
+                  <i class="fas fa-cloud-upload-alt"></i> Backup
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">Save Settings</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html> 
